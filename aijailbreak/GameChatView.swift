@@ -16,6 +16,7 @@ struct GameChatView: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.modelContext) private var modelContext
     @StateObject private var geminiService = GeminiService()
+    @StateObject private var soundManager = SoundManager.shared
     
     @State private var messages: [ChatMessage] = []
     @State private var inputText = ""
@@ -83,6 +84,7 @@ struct GameChatView: View {
                         HStack {
                             Spacer()
                             Button(role: .destructive) {
+                                soundManager.playWarning()
                                 showingResetConfirm = true
                             } label: {
                                 HStack(spacing: 6) {
@@ -131,16 +133,19 @@ struct GameChatView: View {
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
                     Button("返回") {
+                        soundManager.playButtonTap()
                         dismiss()
                     }
                 }
             }
             .alert("挑戰成功！", isPresented: $showingSuccess) {
                 Button("繼續下一關") {
+                    soundManager.playButtonTap()
                     completeLevel()
                     dismiss()
                 }
                 Button("返回主頁") {
+                    soundManager.playButtonTap()
                     dismiss()
                 }
             } message: {
@@ -148,22 +153,29 @@ struct GameChatView: View {
             }
             .alert("挑戰失敗", isPresented: $showingFailure) {
                 Button("重新挑戰") {
+                    soundManager.playButtonTap()
                     resetLevel()
                 }
                 Button("返回主頁") {
+                    soundManager.playButtonTap()
                     dismiss()
                 }
             } message: {
                 Text("很遺憾，你的嘗試次數已用完。要重新挑戰嗎？")
             }
             .alert("提示", isPresented: $showingHint) {
-                Button("知道了", role: .cancel) { }
+                Button("知道了", role: .cancel) { 
+                    soundManager.playButtonTap()
+                }
             } message: {
                 Text(level.hint)
             }
             .alert("重新開始對話？", isPresented: $showingResetConfirm) {
-                Button("取消", role: .cancel) { }
+                Button("取消", role: .cancel) { 
+                    soundManager.playButtonTap()
+                }
                 Button("確認", role: .destructive) {
+                    soundManager.playButtonTap()
                     resetLevel()
                 }
             } message: {
@@ -180,6 +192,8 @@ struct GameChatView: View {
     
     private func sendMessage() {
         guard !inputText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return }
+        
+        soundManager.playMessageSend()
         
         let userMessage = ChatMessage(content: inputText, isUser: true)
         messages.append(userMessage)
@@ -199,16 +213,20 @@ struct GameChatView: View {
             let aiResponse = await geminiService.sendMessage(messageToSend, systemPromptOverride: overrideToUse)
             
             await MainActor.run {
+                soundManager.playMessageReceive()
+                
                 let aiMessage = ChatMessage(content: aiResponse, isUser: false)
                 messages.append(aiMessage)
                 
                 // 檢查是否達到目標
                 if level.isCorrectResponse(aiResponse) {
+                    soundManager.playSuccess()
                     showingSuccess = true
                     clearLocalMessages()
                 } else {
                     attemptsLeft -= 1
                     if attemptsLeft <= 0 {
+                        soundManager.playFailure()
                         showingFailure = true
                         clearLocalMessages()
                     }
@@ -240,6 +258,7 @@ struct LevelHeaderView: View {
     let level: GameLevel
     let attemptsLeft: Int
     let onHintTapped: () -> Void
+    @StateObject private var soundManager = SoundManager.shared
     
     var body: some View {
         VStack(spacing: 8) {
@@ -265,7 +284,10 @@ struct LevelHeaderView: View {
                     }
                     .foregroundColor(attemptsLeft <= 1 ? .red : .primary)
                     
-                    Button(action: onHintTapped) {
+                    Button(action: {
+                        soundManager.playHint()
+                        onHintTapped()
+                    }) {
                         HStack(spacing: 4) {
                             Image(systemName: "lightbulb")
                             Text("提示")

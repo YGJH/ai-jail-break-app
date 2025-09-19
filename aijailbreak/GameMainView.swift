@@ -13,6 +13,7 @@ struct GameMainView: View {
     @Query private var gameProgress: [GameProgress]
     @State private var selectedLevel: GameLevel?
     @State private var showingLevelDetail = false
+    @StateObject private var soundManager = SoundManager.shared
     
     private var progress: GameProgress {
         if let existingProgress = gameProgress.first {
@@ -66,6 +67,7 @@ struct GameMainView: View {
                                 isUnlocked: GameLevels.isUnlocked(level: level, progress: progress),
                                 isCompleted: progress.completedLevels.contains(level.id)
                             ) {
+                                soundManager.playButtonTap()
                                 selectedLevel = level
                                 showingLevelDetail = true
                             }

@@ -10,6 +10,7 @@ import SwiftUI
 struct APITestChatView: View {
     @Environment(\.dismiss) private var dismiss
     @AppStorage("gemini_api_key") private var savedApiKey: String = ""
+    @StateObject private var soundManager = SoundManager.shared
     
     @State var tempApiKey: String
     @State var tempSystemPrompt: String
@@ -82,7 +83,10 @@ struct APITestChatView: View {
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
-                    Button("關閉") { dismiss() }
+                    Button("關閉") { 
+                        soundManager.playButtonTap()
+                        dismiss() 
+                    }
                 }
             }
             .alert("錯誤", isPresented: $isShowingError) {
@@ -98,11 +102,13 @@ struct APITestChatView: View {
         guard !userMsg.isEmpty else { return }
         
         guard !tempApiKey.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
+            soundManager.playFailure()
             errorMessage = "請先輸入有效的 API Key 再進行測試。"
             isShowingError = true
             return
         }
 
+        soundManager.playMessageSend()
         messages.append(ChatMessage(content: userMsg, isUser: true))
         inputText = ""
         isTesting = true
@@ -116,10 +122,12 @@ struct APITestChatView: View {
             await MainActor.run {
                 isTesting = false
                 if response.starts(with: "發生錯誤：") {
+                    soundManager.playFailure()
                     errorMessage = response
                     isShowingError = true
                     messages.append(ChatMessage(content: "錯誤：\(response)", isUser: false))
                 } else {
+                    soundManager.playMessageReceive()
                     messages.append(ChatMessage(content: response, isUser: false))
                 }
             }

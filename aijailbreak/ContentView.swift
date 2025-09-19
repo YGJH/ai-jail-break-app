@@ -12,6 +12,7 @@ struct ContentView: View {
     @Environment(\.modelContext) private var modelContext
     @State private var showingGame = false
     @State private var showingSettings = false
+    @StateObject private var soundManager = SoundManager.shared
     
     var body: some View {
         NavigationView {
@@ -54,6 +55,7 @@ struct ContentView: View {
                 // 操作按鈕
                 VStack(spacing: 16) {
                     Button(action: {
+                        soundManager.playButtonTap()
                         showingGame = true
                     }) {
                         HStack {
@@ -69,6 +71,7 @@ struct ContentView: View {
                     }
                     
                     Button(action: {
+                        soundManager.playButtonTap()
                         showingSettings = true
                     }) {
                         HStack {

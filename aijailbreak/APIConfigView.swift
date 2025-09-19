@@ -18,6 +18,7 @@ struct APIConfigView: View {
     @State private var testResult: String = ""
     @State private var isTestingAPI = false
     @State private var showingAPITest = false
+    @StateObject private var soundManager = SoundManager.shared
     
     var body: some View {
         NavigationView {
@@ -34,11 +35,36 @@ struct APIConfigView: View {
 
                 // 常駐的測試對話入口（始終可見）
                 Section {
-                    Button(action: { showingAPITest = true }) {
+                    Button(action: { 
+                        soundManager.playButtonTap()
+                        showingAPITest = true 
+                    }) {
                         HStack {
                             Image(systemName: "bubble.left.and.bubble.right")
                             Text("開啟測試對話（立即測試 API Key）")
                         }
+                    }
+                    .sheet(isPresented: $showingAPITest) {
+                        APITestChatView(tempApiKey: tempApiKey, tempSystemPrompt: tempSystemPrompt)
+                    }
+                }
+                
+                Section("音效設定") {
+                    Toggle("啟用音效", isOn: Binding(
+                        get: { soundManager.isSoundEnabled },
+                        set: { newValue in
+                            soundManager.setSoundEnabled(newValue)
+                            if newValue {
+                                soundManager.playButtonTap()
+                            }
+                        }
+                    ))
+                    
+                    if soundManager.isSoundEnabled {
+                        Button("測試音效") {
+                            soundManager.playSuccess()
+                        }
+                        .foregroundColor(.blue)
                     }
                 }
                 
@@ -68,7 +94,10 @@ struct APIConfigView: View {
                     }
                     
                     HStack {
-                        Button(action: testAPI) {
+                            Button(action: {
+                                soundManager.playButtonTap()
+                                testAPI()
+                            }) {
                             HStack {
                                 if isTestingAPI {
                                     ProgressView()
@@ -78,17 +107,20 @@ struct APIConfigView: View {
                                 }
                                 Text("測試 API 連接")
                             }
-                        }
-                        .disabled(tempApiKey.isEmpty || isTestingAPI)
-
-                        Button(action: { showingAPITest = true }) {
-                            HStack {
-                                Image(systemName: "bubble.left.and.bubble.right")
-                                Text("開啟測試對話")
                             }
+                            .disabled(tempApiKey.isEmpty || isTestingAPI)
+
+                            Button(action: { 
+                                soundManager.playButtonTap()
+                                showingAPITest = true 
+                            }) {
+                                HStack {
+                                    Image(systemName: "bubble.left.and.bubble.right")
+                                    Text("開啟測試對話")
+                                }
+                            }
+                            .padding(.leading, 8)
                         }
-                        .padding(.leading, 8)
-                    }
                 }
                 
                 Section("使用說明") {
@@ -140,12 +172,14 @@ struct APIConfigView: View {
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
                     Button("取消") {
+                        soundManager.playButtonTap()
                         dismiss()
                     }
                 }
                 
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button("保存") {
+                        soundManager.playSuccess()
                         saveSettings()
                         dismiss()
                     }
@@ -187,8 +221,10 @@ struct APIConfigView: View {
                 isTestingAPI = false
 
                 if response.contains("發生錯誤") || response.contains("無效") || response.contains("請提供有效") {
+                    soundManager.playFailure()
                     testResult = "API 測試失敗：\(response)"
                 } else {
+                    soundManager.playSuccess()
                     testResult = "API 測試成功！連接正常。回應：\(response)"
                 }
 
