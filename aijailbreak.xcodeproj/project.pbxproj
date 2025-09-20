@@ -24,7 +24,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
-		3B41A5AC2E7D210D006063CE /* aijailbreak.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = aijailbreak.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		3B41A5AC2E7D210D006063CE /* jail break.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "jail break.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		3B41A5BB2E7D210F006063CE /* aijailbreakTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = aijailbreakTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		3B41A5C52E7D210F006063CE /* aijailbreakUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = aijailbreakUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
@@ -85,7 +85,7 @@
 		3B41A5AD2E7D210D006063CE /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				3B41A5AC2E7D210D006063CE /* aijailbreak.app */,
+				3B41A5AC2E7D210D006063CE /* jail break.app */,
 				3B41A5BB2E7D210F006063CE /* aijailbreakTests.xctest */,
 				3B41A5C52E7D210F006063CE /* aijailbreakUITests.xctest */,
 			);
@@ -95,9 +95,9 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		3B41A5AB2E7D210D006063CE /* aijailbreak */ = {
+		3B41A5AB2E7D210D006063CE /* jail break */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 3B41A5CF2E7D210F006063CE /* Build configuration list for PBXNativeTarget "aijailbreak" */;
+			buildConfigurationList = 3B41A5CF2E7D210F006063CE /* Build configuration list for PBXNativeTarget "jail break" */;
 			buildPhases = (
 				3B41A5A82E7D210D006063CE /* Sources */,
 				3B41A5A92E7D210D006063CE /* Frameworks */,
@@ -110,11 +110,11 @@
 			fileSystemSynchronizedGroups = (
 				3B41A5AE2E7D210D006063CE /* aijailbreak */,
 			);
-			name = aijailbreak;
+			name = "jail break";
 			packageProductDependencies = (
 			);
 			productName = aijailbreak;
-			productReference = 3B41A5AC2E7D210D006063CE /* aijailbreak.app */;
+			productReference = 3B41A5AC2E7D210D006063CE /* jail break.app */;
 			productType = "com.apple.product-type.application";
 		};
 		3B41A5BA2E7D210F006063CE /* aijailbreakTests */ = {
@@ -200,7 +200,7 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				3B41A5AB2E7D210D006063CE /* aijailbreak */,
+				3B41A5AB2E7D210D006063CE /* jail break */,
 				3B41A5BA2E7D210F006063CE /* aijailbreakTests */,
 				3B41A5C42E7D210F006063CE /* aijailbreakUITests */,
 			);
@@ -258,12 +258,12 @@
 /* Begin PBXTargetDependency section */
 		3B41A5BD2E7D210F006063CE /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			target = 3B41A5AB2E7D210D006063CE /* aijailbreak */;
+			target = 3B41A5AB2E7D210D006063CE /* jail break */;
 			targetProxy = 3B41A5BC2E7D210F006063CE /* PBXContainerItemProxy */;
 		};
 		3B41A5C72E7D210F006063CE /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			target = 3B41A5AB2E7D210D006063CE /* aijailbreak */;
+			target = 3B41A5AB2E7D210D006063CE /* jail break */;
 			targetProxy = 3B41A5C62E7D210F006063CE /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
@@ -326,6 +326,8 @@
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_BUNDLE_IDENTIFIER = test.jailbreakss;
+				PRODUCT_NAME = "jail break";
 				SDKROOT = iphoneos;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
@@ -382,6 +384,9 @@
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_BUNDLE_IDENTIFIER = test.jailbreakss;
+				PRODUCT_NAME = "jail break";
 				SDKROOT = iphoneos;
 				SWIFT_COMPILATION_MODE = wholemodule;
 				VALIDATE_PRODUCT = YES;
@@ -395,19 +400,19 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 6Y5PPK72M8;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortraitUpsideDown;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = test.aijailbreak;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
@@ -426,19 +431,20 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 6Y5PPK72M8;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortraitUpsideDown;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = test.aijailbreak;
+				PRODUCT_BUNDLE_IDENTIFIER = test.jailbreakss;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
@@ -542,7 +548,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		3B41A5CF2E7D210F006063CE /* Build configuration list for PBXNativeTarget "aijailbreak" */ = {
+		3B41A5CF2E7D210F006063CE /* Build configuration list for PBXNativeTarget "jail break" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				3B41A5D02E7D210F006063CE /* Debug */,

@@ -8,6 +8,7 @@
 import SwiftUI
 import UIKit
 import SwiftData
+import Foundation
 
 struct GameChatView: View {
     let level: GameLevel
@@ -47,7 +48,6 @@ struct GameChatView: View {
         }
     }
 
-
     private func loadMessagesFromLocal() {
         guard let data = UserDefaults.standard.data(forKey: storageKey) else { return }
         do {
@@ -63,81 +63,22 @@ struct GameChatView: View {
     }
     
     var body: some View {
-        NavigationView {
-            VStack(spacing: 0) {
-                // 關卡信息頭部
-                LevelHeaderView(
-                    level: level,
-                    attemptsLeft: attemptsLeft,
-                    onHintTapped: {
-                        showingHint = true
-                        hasUsedHint = true
-                    }
-                )
-                
-                Divider()
-                
-                // 對話區域
-                ScrollViewReader { proxy in
-                    ScrollView {
-                        // Restart conversation button
-                        HStack {
-                            Spacer()
-                            Button(role: .destructive) {
-                                soundManager.playWarning()
-                                showingResetConfirm = true
-                            } label: {
-                                HStack(spacing: 6) {
-                                    Image(systemName: "arrow.counterclockwise")
-                                    Text("重新開始對話")
-                                }
-                            }
-                            .padding(.trailing)
-                        }
-
-                        LazyVStack(spacing: 12) {
-                            // 歡迎消息
-                            if messages.isEmpty {
-                                WelcomeMessageView(level: level)
-                            }
-                            
-                            // 對話消息
-                            ForEach(messages) { message in
-                                MessageBubble(message: message)
-                                    .id(message.id)
-                            }
-                        }
-                        .padding()
-                    }
-                    .onChange(of: messages.count) { _, _ in
-                        if let lastMessage = messages.last {
-                            withAnimation(.easeInOut(duration: 0.3)) {
-                                proxy.scrollTo(lastMessage.id, anchor: .bottom)
-                            }
-                        }
-                    }
-                }
-                
-                Divider()
-                
-                // 輸入區域
-                ChatInputView(
-                    inputText: $inputText,
-                    isLoading: geminiService.isLoading,
-                    onSend: sendMessage
-                )
-            }
-            .navigationTitle(level.title)
-            .navigationBarTitleDisplayMode(.inline)
-            .navigationBarBackButtonHidden()
-            .toolbar {
-                ToolbarItem(placement: .navigationBarLeading) {
-                    Button("返回") {
-                        soundManager.playButtonTap()
-                        dismiss()
-                    }
-                }
-            }
+        ZStack {
+            BackgroundGradientView()
+                .ignoresSafeArea()
+            
+            GameChatBodyView(
+                level: level,
+                messages: $messages,
+                inputText: $inputText,
+                attemptsLeft: attemptsLeft,
+                isLoading: geminiService.isLoading,
+                onHint: handleHint,
+                onResetConfirm: handleResetConfirm,
+                onSend: sendMessage,
+                onDismiss: { dismiss() }
+            )
+        }
             .alert("挑戰成功！", isPresented: $showingSuccess) {
                 Button("繼續下一關") {
                     soundManager.playButtonTap()
@@ -170,16 +111,16 @@ struct GameChatView: View {
             } message: {
                 Text(level.hint)
             }
-            .alert("重新開始對話？", isPresented: $showingResetConfirm) {
-                Button("取消", role: .cancel) { 
-                    soundManager.playButtonTap()
+            .confirmationDialog("確認重新開始", isPresented: $showingResetConfirm) {
+                Button("重新開始", role: .destructive) {
+                    soundManager.playWarning()
+                    resetConversation()
                 }
-                Button("確認", role: .destructive) {
+                Button("取消", role: .cancel) {
                     soundManager.playButtonTap()
-                    resetLevel()
                 }
             } message: {
-                Text("這將會清除目前的對話進度並重置嘗試次數。確認要重新開始嗎？")
+                Text("這將清除當前的對話記錄，你確定要重新開始嗎？")
             }
             .onAppear {
                 loadMessagesFromLocal()
@@ -187,7 +128,6 @@ struct GameChatView: View {
             .onChange(of: messages) { _, _ in
                 saveMessagesToLocal()
             }
-        }
     }
     
     private func sendMessage() {
@@ -251,6 +191,140 @@ struct GameChatView: View {
         attemptsLeft = level.maxAttempts
         hasUsedHint = false
         clearLocalMessages()
+    }
+    
+    private func resetConversation() {
+        messages.removeAll()
+        attemptsLeft = level.maxAttempts
+        hasUsedHint = false
+        clearLocalMessages()
+    }
+    
+    // Extracted handlers to reduce type-checking complexity
+    private func handleHint() {
+        soundManager.playHint()
+        showingHint = true
+        hasUsedHint = true
+    }
+    
+    private func handleResetConfirm() {
+        soundManager.playWarning()
+        showingResetConfirm = true
+    }
+}
+
+// Extracted small background view to reduce inference in main body
+private struct BackgroundGradientView: View {
+    private static let colors: [Color] = [
+        Color(red: 0.05, green: 0.05, blue: 0.15),
+        Color(red: 0.1, green: 0.1, blue: 0.3),
+        Color(red: 0.05, green: 0.15, blue: 0.25)
+    ]
+    
+    var body: some View {
+        LinearGradient(
+            colors: Self.colors,
+            startPoint: .topLeading,
+            endPoint: .bottomTrailing
+        )
+    }
+}
+
+// Extracted main content to keep GameChatView.body shallow
+private struct GameChatBodyView: View {
+    let level: GameLevel
+    @Binding var messages: [ChatMessage]
+    @Binding var inputText: String
+    let attemptsLeft: Int
+    let isLoading: Bool
+    let onHint: () -> Void
+    let onResetConfirm: () -> Void
+    let onSend: () -> Void
+    let onDismiss: () -> Void
+    
+    var body: some View {
+        VStack(spacing: 0) {
+            // 返回按鈕
+            HStack {
+                Button(action: onDismiss) {
+                    HStack(spacing: 8) {
+                        Image(systemName: "chevron.left")
+                            .font(.system(size: 16, weight: .semibold))
+                        Text("返回")
+                            .font(.system(size: 16, weight: .semibold, design: .monospaced))
+                    }
+                    .foregroundColor(.cyan)
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 12)
+                }
+                Spacer()
+            }
+            .background(Color.black.opacity(0.8))
+            
+            ModernLevelHeaderView(
+                level: level,
+                attemptsLeft: attemptsLeft,
+                onHintTapped: onHint
+            )
+            
+            ScrollViewReader { proxy in
+                ScrollView {
+                    VStack(spacing: 16) {
+                        // 重新開始對話按鈕
+                        HStack {
+                            Spacer()
+                            Button(action: onResetConfirm) {
+                                HStack(spacing: 8) {
+                                    Image(systemName: "arrow.counterclockwise")
+                                        .font(.system(size: 14, weight: .semibold))
+                                    Text("重新開始對話")
+                                        .font(.system(size: 14, weight: .medium, design: .monospaced))
+                                }
+                                .foregroundColor(.orange)
+                                .padding(.horizontal, 12)
+                                .padding(.vertical, 8)
+                                .background(
+                                    RoundedRectangle(cornerRadius: 8)
+                                        .fill(Color.orange.opacity(0.2))
+                                        .overlay(
+                                            RoundedRectangle(cornerRadius: 8)
+                                                .stroke(Color.orange.opacity(0.5), lineWidth: 1)
+                                        )
+                                )
+                            }
+                            .padding(.trailing)
+                        }
+                        .padding(.top, 8)
+                        
+                        // 對話消息
+                        LazyVStack(spacing: 16) {
+                            if messages.isEmpty {
+                                ModernWelcomeMessageView(level: level)
+                            }
+                            
+                            ForEach(messages) { message in
+                                ModernMessageBubble(message: message)
+                                    .id(message.id)
+                            }
+                        }
+                    }
+                    .padding()
+                }
+                .onChange(of: messages.count) { _, _ in
+                    if let lastMessage = messages.last {
+                        withAnimation(.easeInOut(duration: 0.3)) {
+                            proxy.scrollTo(lastMessage.id, anchor: .bottom)
+                        }
+                    }
+                }
+            }
+            
+            ModernChatInputView(
+                inputText: $inputText,
+                isLoading: isLoading,
+                onSend: onSend
+            )
+        }
     }
 }
 
@@ -531,4 +605,311 @@ struct RoundedCorner: Shape {
         progress: GameProgress()
     )
     .modelContainer(for: GameProgress.self, inMemory: true)
+}
+
+// 現代化關卡頭部視圖
+struct ModernLevelHeaderView: View {
+    let level: GameLevel
+    let attemptsLeft: Int
+    let onHintTapped: () -> Void
+    
+    var body: some View {
+        VStack(spacing: 12) {
+            HStack {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("關卡 \(level.id)")
+                        .font(.system(size: 14, weight: .bold, design: .monospaced))
+                        .foregroundColor(.cyan)
+                        .textCase(.uppercase)
+                        .tracking(1)
+                    
+                    Text(level.title)
+                        .font(.system(size: 20, weight: .bold))
+                        .foregroundColor(.white)
+                }
+                
+                Spacer()
+                
+                VStack(alignment: .trailing, spacing: 4) {
+                    Text("剩餘嘗試")
+                        .font(.system(size: 12, weight: .medium, design: .monospaced))
+                        .foregroundColor(.gray)
+                        .textCase(.uppercase)
+                        .tracking(0.5)
+                    
+                    Text("\(attemptsLeft)")
+                        .font(.system(size: 24, weight: .black, design: .monospaced))
+                        .foregroundColor(attemptsLeft <= 3 ? .red : .cyan)
+                }
+            }
+            
+            Text(level.description)
+                .font(.system(size: 14))
+                .foregroundColor(.gray)
+                .multilineTextAlignment(.leading)
+                .frame(maxWidth: .infinity, alignment: .leading)
+            
+            HStack {
+                ModernDifficultyBadge(difficulty: level.difficulty, isUnlocked: true)
+                
+                Spacer()
+                
+                Button(action: onHintTapped) {
+                    HStack(spacing: 6) {
+                        Image(systemName: "lightbulb.fill")
+                            .font(.system(size: 12))
+                        Text("提示")
+                            .font(.system(size: 12, weight: .medium, design: .monospaced))
+                    }
+                    .foregroundColor(.orange)
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 6)
+                    .background(
+                        RoundedRectangle(cornerRadius: 8)
+                            .fill(Color.orange.opacity(0.2))
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 8)
+                                    .stroke(Color.orange.opacity(0.5), lineWidth: 1)
+                            )
+                    )
+                }
+                
+                HStack(spacing: 4) {
+                    Image(systemName: "star.fill")
+                        .font(.system(size: 12))
+                        .foregroundColor(.orange)
+                    Text("\(level.scoreReward)")
+                        .font(.system(size: 14, weight: .bold, design: .monospaced))
+                        .foregroundColor(.orange)
+                }
+            }
+        }
+        .padding()
+        .background(
+            RoundedRectangle(cornerRadius: 0)
+                .fill(Color.black.opacity(0.3))
+                .overlay(
+                    Rectangle()
+                        .fill(
+                            LinearGradient(
+                                colors: [Color.cyan.opacity(0.3), Color.blue.opacity(0.3)],
+                                startPoint: .leading,
+                                endPoint: .trailing
+                            )
+                        )
+                        .frame(height: 2),
+                    alignment: .bottom
+                )
+        )
+    }
+}
+
+// 現代化歡迎消息視圖
+struct ModernWelcomeMessageView: View {
+    let level: GameLevel
+    
+    var body: some View {
+        VStack(spacing: 16) {
+            Image(systemName: "brain.head.profile")
+                .font(.system(size: 40))
+                .foregroundStyle(
+                    LinearGradient(
+                        colors: [Color.cyan, Color.blue],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    )
+                )
+            
+            VStack(spacing: 8) {
+                Text("AI 助手")
+                    .font(.system(size: 18, weight: .bold, design: .monospaced))
+                    .foregroundColor(.white)
+                
+                Text("你好！我是你的 AI 助手。我會盡力幫助你，但我有一些安全限制。讓我們開始對話吧！")
+                    .font(.system(size: 14))
+                    .foregroundColor(.gray)
+                    .multilineTextAlignment(.center)
+                    .lineLimit(nil)
+            }
+        }
+        .padding(20)
+        .background(
+            RoundedRectangle(cornerRadius: 16)
+                .fill(Color.black.opacity(0.2))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 16)
+                        .stroke(
+                            LinearGradient(
+                                colors: [Color.cyan.opacity(0.4), Color.blue.opacity(0.4)],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            ),
+                            lineWidth: 1
+                        )
+                )
+        )
+        .frame(maxWidth: .infinity)
+    }
+}
+
+// 現代化消息氣泡
+struct ModernMessageBubble: View {
+    let message: ChatMessage
+    
+    // Extract gradient computation to reduce type-checking complexity
+    private var backgroundGradient: LinearGradient {
+        if message.isUser {
+            return LinearGradient(
+                colors: [Color.cyan, Color.blue],
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
+        } else {
+            return LinearGradient(
+                colors: [Color.black.opacity(0.4), Color.gray.opacity(0.3)],
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
+        }
+    }
+    
+    private var strokeStyle: AnyShapeStyle {
+        if message.isUser {
+            return AnyShapeStyle(Color.clear)
+        } else {
+            return AnyShapeStyle(
+                LinearGradient(
+                    colors: [Color.gray.opacity(0.4), Color.clear],
+                    startPoint: .topLeading,
+                    endPoint: .bottomTrailing
+                )
+            )
+        }
+    }
+    
+    var body: some View {
+        HStack {
+            if message.isUser {
+                Spacer(minLength: 50)
+            }
+            
+            VStack(alignment: message.isUser ? .trailing : .leading, spacing: 8) {
+                Text(message.content)
+                    .font(.system(size: 14))
+                    .foregroundColor(message.isUser ? .black : .white)
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 12)
+                    .background(
+                        RoundedRectangle(cornerRadius: 16)
+                            .fill(backgroundGradient)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 16)
+                                    .stroke(strokeStyle, lineWidth: 1)
+                            )
+                    )
+                
+                Text(DateFormatter.timeFormatter.string(from: message.timestamp))
+                    .font(.system(size: 10, design: .monospaced))
+                    .foregroundColor(.gray.opacity(0.7))
+                    .padding(.horizontal, 4)
+            }
+            
+            if !message.isUser {
+                Spacer(minLength: 50)
+            }
+        }
+    }
+}
+
+// 現代化輸入視圖
+struct ModernChatInputView: View {
+    @Binding var inputText: String
+    let isLoading: Bool
+    let onSend: () -> Void
+    
+    // Extract fill computation to reduce type-checking complexity
+    private var buttonFillStyle: AnyShapeStyle {
+        if inputText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            return AnyShapeStyle(Color.gray.opacity(0.3))
+        } else {
+            return AnyShapeStyle(
+                LinearGradient(
+                    colors: [Color.cyan, Color.blue],
+                    startPoint: .topLeading,
+                    endPoint: .bottomTrailing
+                )
+            )
+        }
+    }
+    
+    var body: some View {
+        VStack(spacing: 0) {
+            Rectangle()
+                .fill(
+                    LinearGradient(
+                        colors: [Color.cyan.opacity(0.3), Color.blue.opacity(0.3)],
+                        startPoint: .leading,
+                        endPoint: .trailing
+                    )
+                )
+                .frame(height: 1)
+            
+            HStack(spacing: 12) {
+                // 輸入框
+                ZStack(alignment: .leading) {
+                    if inputText.isEmpty {
+                        Text("輸入你的消息...")
+                            .font(.system(size: 14))
+                            .foregroundColor(.gray.opacity(0.6))
+                            .padding(.horizontal, 16)
+                    }
+                    
+                    TextField("", text: $inputText)
+                        .font(.system(size: 14))
+                        .foregroundColor(.white)
+                        .padding(.horizontal, 16)
+                        .padding(.vertical, 12)
+                        .background(
+                            RoundedRectangle(cornerRadius: 12)
+                                .fill(Color.black.opacity(0.3))
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 12)
+                                        .stroke(Color.gray.opacity(0.3), lineWidth: 1)
+                                )
+                        )
+                        .onSubmit(onSend)
+                }
+                
+                // 發送按鈕
+                Button(action: onSend) {
+                    ZStack {
+                        Circle()
+                            .fill(buttonFillStyle)
+                            .frame(width: 40, height: 40)
+                        
+                        if isLoading {
+                            ProgressView()
+                                .progressViewStyle(CircularProgressViewStyle(tint: .white))
+                                .scaleEffect(0.8)
+                        } else {
+                            Image(systemName: "paperplane.fill")
+                                .font(.system(size: 16, weight: .semibold))
+                                .foregroundColor(.white)
+                        }
+                    }
+                }
+                .disabled(inputText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || isLoading)
+            }
+            .padding()
+            .background(Color.black.opacity(0.8))
+        }
+    }
+}
+
+extension DateFormatter {
+    static let timeFormatter: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.timeStyle = .short
+        return formatter
+    }()
 }

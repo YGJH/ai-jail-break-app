@@ -4,10 +4,28 @@
 <dict>
 	<key>SchemeUserState</key>
 	<dict>
-		<key>aijailbreak.xcscheme_^#shared#^_</key>
+		<key>jail break.xcscheme_^#shared#^_</key>
 		<dict>
 			<key>orderHint</key>
-			<integer>0</integer>
+			<integer>1</integer>
+		</dict>
+	</dict>
+	<key>SuppressBuildableAutocreation</key>
+	<dict>
+		<key>3B41A5AB2E7D210D006063CE</key>
+		<dict>
+			<key>primary</key>
+			<true/>
+		</dict>
+		<key>3B41A5BA2E7D210F006063CE</key>
+		<dict>
+			<key>primary</key>
+			<true/>
+		</dict>
+		<key>3B41A5C42E7D210F006063CE</key>
+		<dict>
+			<key>primary</key>
+			<true/>
 		</dict>
 	</dict>
 </dict>
